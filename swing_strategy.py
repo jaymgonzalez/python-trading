@@ -11,9 +11,6 @@ import math
 from bokeh.models import DatetimeTickFormatter
 
 
-
-
-
 """
 Based on 
 https://www.tradingview.com/script/q23anHmP-VuManChu-Swing-Free/
@@ -163,19 +160,9 @@ def load_data_file(symbol, interval, time_interval):
         print(f"Empty file: {file_path}")
         return None
 
-    #  Shorten df for testing
-    #df = df.iloc[30000:40000]
-
-    #  Rename columns
-    # print(df.head())
-    # df = df.rename(columns={"open": "Open", "close": "Close", "low": "Low", "high": "High", "volume": "Volume"})
-
-    # df['Date'] = pd.to_datetime(df['Date'], unit='s', utc=True)
-    # df = df.set_index('Date')
-
+    # Drop Adj Close
     df = df.drop(['Adj Close'], axis=1)
 
-    # print(df.head())
 
     #  Drop na
     df.dropna(axis=0, how='any', inplace=True)
@@ -189,9 +176,7 @@ def run_backtest(df):
     bt = Backtest(df, MixedStrategy, cash=100000, commission=.00075, trade_on_close=True, exclusive_orders=False, hedging=False)
     stats = bt.run()
     print(stats)
-    # set_bokeh_output(notebook=False)
 
-    formatter = DatetimeTickFormatter(hourmin='%H:%M')
     bt.plot(open_browser=True)
 
 symbols = ['BTC-USD', 'ETH-USD', 'LTC-USD', 'ALGO-USD','XLM-USD','BAT-USD']
@@ -200,8 +185,6 @@ symbols = ['BTC-USD', 'ETH-USD', 'LTC-USD', 'ALGO-USD','XLM-USD','BAT-USD']
 if __name__ == '__main__':
     symbol = 'BTC-USD'
     df = load_data_file(symbol, '1h', '6m')
-
-    # print(df.dtypes)
 
     #  Run backtest
     run_backtest(df)
