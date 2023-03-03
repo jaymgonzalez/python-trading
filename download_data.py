@@ -1,7 +1,9 @@
 import yfinance as yf
 import argparse
 from datetime import date, timedelta, datetime
+from bokeh.models import DatetimeTickFormatter
 
+formatter = DatetimeTickFormatter(hourmin='%H:%M')
 # Define and parse command-line arguments
 parser = argparse.ArgumentParser()
 
@@ -36,13 +38,15 @@ def add_date_column(data, interval):
     time_number, time_letter = int(interval[0]), interval[1]
 
     if time_letter == 'm':
-        data.insert(0, "Date", [start_time + timedelta(minutes=i*time_number) for i in range(len(data))])
+        date_list = [start_time + timedelta(minutes=i*time_number) for i in range(len(data))]
     elif time_letter == 'd':
-        data.insert(0, "Date", [start_time + timedelta(days=i*time_number) for i in range(len(data))])
+        date_list = [start_time + timedelta(days=i*time_number) for i in range(len(data))]
     elif time_letter == 'h':
-        data.insert(0, "Date", [start_time + timedelta(hours=i*time_number) for i in range(len(data))])
-    else: Exception(f"Invalid time {time_letter}")
-
+        date_list = [start_time + timedelta(hours=i*time_number) for i in range(len(data))]
+    else:
+        raise Exception(f"Invalid time {time_letter}. Use d, h or m")
+    
+    data.insert(0, "Date", date_list)
 
 # Download the data
 data = yf.download(args.ticker, start=start_date, end=None, interval=args.interval)

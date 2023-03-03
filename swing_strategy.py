@@ -2,17 +2,16 @@ import os
 from pandas.tseries.holiday import USFederalHolidayCalendar
 from pandas.tseries.offsets import CustomBusinessDay
 US_BUSINESS_DAY = CustomBusinessDay(calendar=USFederalHolidayCalendar())
-import os
-from pandas.tseries.holiday import USFederalHolidayCalendar
-from pandas.tseries.offsets import CustomBusinessDay
-US_BUSINESS_DAY = CustomBusinessDay(calendar=USFederalHolidayCalendar())
 from os.path import exists
 import pandas as pd
-from backtesting import Strategy
-from backtesting import Backtest
+from backtesting import Strategy, set_bokeh_output, Backtest
 import pandas_ta as ta
 # from ta_utils import *
 import math
+from bokeh.models import DatetimeTickFormatter
+
+
+
 
 
 """
@@ -159,7 +158,7 @@ def load_data_file(symbol, interval, time_interval):
         return None
 
     #  Load data file
-    df = pd.read_csv(file_path)
+    df = pd.read_csv(file_path, index_col='Date', parse_dates=True)
     if df is None or len(df) == 0:
         print(f"Empty file: {file_path}")
         return None
@@ -171,12 +170,12 @@ def load_data_file(symbol, interval, time_interval):
     # print(df.head())
     # df = df.rename(columns={"open": "Open", "close": "Close", "low": "Low", "high": "High", "volume": "Volume"})
 
-    # df['Date'] = pd.to_datetime(df['unix'], unit='s', utc=True)
+    # df['Date'] = pd.to_datetime(df['Date'], unit='s', utc=True)
+    # df = df.set_index('Date')
+
     df = df.drop(['Adj Close'], axis=1)
 
     # print(df.head())
-
-    df = df.set_index('Date')
 
     #  Drop na
     df.dropna(axis=0, how='any', inplace=True)
@@ -190,14 +189,17 @@ def run_backtest(df):
     bt = Backtest(df, MixedStrategy, cash=100000, commission=.00075, trade_on_close=True, exclusive_orders=False, hedging=False)
     stats = bt.run()
     print(stats)
-    bt.plot()
+    # set_bokeh_output(notebook=False)
+
+    formatter = DatetimeTickFormatter(hourmin='%H:%M')
+    bt.plot(open_browser=True)
 
 symbols = ['BTC-USD', 'ETH-USD', 'LTC-USD', 'ALGO-USD','XLM-USD','BAT-USD']
 
 # MAIN
 if __name__ == '__main__':
     symbol = 'BTC-USD'
-    df = load_data_file(symbol, '1h', '6d')
+    df = load_data_file(symbol, '1h', '6m')
 
     # print(df.dtypes)
 
