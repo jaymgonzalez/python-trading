@@ -63,8 +63,10 @@ async def binance_liquidations(uri, filename):
                 msg = json.loads(msg)["k"]
                 # msg = json.loads(msg)
                 msg = [str(x) for x in list(msg.values())]
+                print(msg[12])
                 with open(filename, "a") as f:
-                    f.write(",".join(msg) + "\n")
+                    if msg[12] == "True":
+                        f.write(",".join(msg) + "\n")
         except Exception as e:
             print(e)
             continue
