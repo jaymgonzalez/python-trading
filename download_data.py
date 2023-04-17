@@ -1,9 +1,9 @@
-import yfinance as yf
+import download_yfinance as yf
 import argparse
 from datetime import date, timedelta, datetime
-from bokeh.models import DatetimeTickFormatter
+# from bokeh.models import DatetimeTickFormatter
 
-formatter = DatetimeTickFormatter(hourmin='%H:%M')
+# formatter = DatetimeTickFormatter(hourmin='%H:%M')
 # Define and parse command-line arguments
 parser = argparse.ArgumentParser()
 
