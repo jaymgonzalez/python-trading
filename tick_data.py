@@ -2,45 +2,63 @@ import asyncio
 import json
 import os
 from websockets import connect
+import sqlite3
 
-websocket_uri = "wss://fstream.binance.com/ws/!forceOrder@arr"
+
+con = sqlite3.connect("tick_btcusdt.db")
+cur = con.cursor()
+
+res = cur.execute("SELECT name FROM sqlite_master")
+
+if res.fetchall() is None:
+    cur.execute("CREATE TABLE btcusdt(time, price, qty, is_mm)")
+
+
+websocket_uri = "wss://stream.binance.com:9443/ws/btcusdt@trade"
 filename = "binance.csv"
 
-if not os.path.isfile(filename):
-    with open(filename, "w") as f:
-        f.write(
-            ",".join(
-                [
-                    "symbol",
-                    "side",
-                    "order_type",
-                    "time_in_force",
-                    "original_quantity",
-                    "price",
-                    "average_price",
-                    "order_status",
-                    "order_last_filled_quantity",
-                    "order_filled_accumulated_quantity",
-                    "order_trade_time",
-                ]
-            )
-            + "\n"
-        )
+# if not os.path.isfile(filename):
+#     with open(filename, "w") as f:
+#         f.write(
+#             ",".join(
+#                 [
+#                     "event_type",
+#                     "event_time",
+#                     "symbol",
+#                     "trade_id",
+#                     "price",
+#                     "quantity",
+#                     "buyer_order_id",
+#                     "seller_order_id",
+#                     "trade_time",
+#                     "is_the_buyer_the_market_maker",
+#                     "ignore",
+#                 ]
+#             )
+#             + "\n"
+#         )
 
 
-async def binance_liquidations(uri, filename):
+async def binance_tick_data(uri, filename):
     async for websocket in connect(uri):
         try:
             while True:
                 msg = await websocket.recv()
                 print(msg)
-                msg = json.loads(msg)["o"]
+                msg = json.loads(msg)
                 msg = [str(x) for x in list(msg.values())]
-                with open(filename, "a") as f:
-                    f.write(",".join(msg) + "\n")
+                selected_values = (msg[1], msg[4], msg[5], msg[8])
+                print(selected_values)
+                cur.execute(
+                    f"INSERT INTO btcusdt(time, price, qty, is_mm) VALUES(?,?,?,?)",
+                    selected_values,
+                )
+                con.commit()
+                # with open(filename, "a") as f:
+                #     f.write(",".join(msg) + "\n")
         except Exception as e:
             print(e)
             continue
 
 
-asyncio.run(binance_liquidations(websocket_uri, filename))
+asyncio.run(binance_tick_data(websocket_uri, filename))
