@@ -11,11 +11,11 @@ websocket_uri = "wss://stream.binance.com:9443/ws/btcusdt@trade"
 async def binance_tick_data(uri):
     con = sqlite3.connect("tick_btcusdt.db")
     cur = con.cursor()
-
     res = cur.execute("SELECT name FROM sqlite_master")
 
-    if res.fetchall() is None:
+    if len(res.fetchall()) == 0:
         cur.execute("CREATE TABLE btcusdt(time, price, qty, is_mm)")
+
     async for websocket in connect(uri):
         try:
             while True:
@@ -23,7 +23,7 @@ async def binance_tick_data(uri):
                 print(msg)
                 msg = json.loads(msg)
                 msg = [str(x) for x in list(msg.values())]
-                selected_values = (msg[1], msg[4], msg[5], msg[8])
+                selected_values = (msg[1], msg[4], msg[5], msg[9])
                 print(selected_values)
                 cur.execute(
                     f"INSERT INTO btcusdt(time, price, qty, is_mm) VALUES(?,?,?,?)",
